@@ -1,5 +1,5 @@
 from django import forms
-from . models import User
+from . models import Comment, Post, User
 from django.shortcuts import get_object_or_404
 
 class FileShareForm(forms.Form):
@@ -16,3 +16,15 @@ class FileShareForm(forms.Form):
         if not user:
             raise forms.ValidationError(f'User named {username} doesn\'t exist' )
         return user
+
+
+class FileCommentForm(forms.ModelForm):
+
+    class Meta:
+        model = Comment
+        fields = ('content',)
+
+        widgets = {
+            'content': forms.Textarea(attrs={'class':'form-control w-50', \
+                'placeholder': 'Leave a comment',})
+        }

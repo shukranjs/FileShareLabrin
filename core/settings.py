@@ -78,9 +78,13 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'db_name',
+        'USER': 'user_name',
+        'PASSWORD': '123',
+        'HOST': '127.0.0.1',
+        'PORT': 5432
+}
 }
 
 
@@ -102,6 +106,13 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# CELERY STUFF
+CELERY_BROKER_URL = 'redis://localhost:6379'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Asia/Baku'
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/

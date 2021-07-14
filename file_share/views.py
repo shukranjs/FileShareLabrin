@@ -1,3 +1,5 @@
+from file_share.tasks import delete_post
+from core.settings import TIME_ZONE
 from django.shortcuts import render, redirect
 from django.urls.base import reverse_lazy
 from django.views.generic.edit import DeleteView
@@ -5,13 +7,14 @@ from django.views.generic.list import ListView
 from .models import User, Post
 from django.contrib import messages
 from django.db.models import Q
-from .forms import FileShareForm
+from .forms import FileShareForm, FileCommentForm
 from django.views.generic import DetailView
 from django import forms
 # Create your views here.
 class HomePageView(ListView):
 
     def get(self, request):
+        delete_post()
         return render(request, 'home.html')
 
     def post(self, request):
@@ -128,20 +131,32 @@ class FileShareListView(ListView):
     
     def post(self, request, pk, *args, **kwargs): 
         form = FileShareForm(request.POST)
-        post = Post.objects.filter(pk=pk)
+        post = Post.objects.filter(pk=pk).first()
         username = request.POST.get('username')
-        user = User.objects.filter(username=username).exists()
+        user_exists = User.objects.filter(username=username).exists()
         if form.is_valid():
-            if user:
+            if user_exists:
                 user = User.objects.filter(username=username).first()
-                user.posts.set(post)
+                current_user_name = User.objects.filter(username=request.session['user'])
+                current_user = User.objects.filter(username=current_user_name.first().username).first()
+                user.posts.add(post)
                 user.save()
-                current_user_name = self.request.session['user']
-                current_user_obj = User.objects.filter(username=current_user_name).first()
-                current_user_obj.posts.set(post)
-                current_user_obj.save()
-                
-                return redirect(f'/profile/{user}')
+                # current_user.posts.add(post)
+                # current_user.save()
+                return redirect('/')
             else:
                 return redirect('/')
         return render(request, 'share.html', {'form': form})
+
+
+# File's detail views
+class FileShareDetailView(DetailView): 
+    model = Post
+    template_name = 'file-detail.html'
+    form_class_detail = FileCommentForm
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = self.form_class_detail
+        post = Post.objects.filter(user__username=self.request.session['user']).first()
+        context['post'] = post
+        return context
